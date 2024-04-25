@@ -13,11 +13,25 @@ class User {
     var name: String
     var city: String
     var joinDate: Date
+    @Relationship(deleteRule: .cascade) var jobs = [Job]()
     
     init(name: String, city: String, joinDate: Date) {
         self.name = name
         self.city = city
         self.joinDate = joinDate
+    }
+}
+
+@Model
+class Job {
+    var name: String
+    var priority: Int
+    var owner: User?
+    
+    init(name: String, priority: Int, owner: User? = nil) {
+        self.name = name
+        self.priority = priority
+        self.owner = owner
     }
 }
 
@@ -39,36 +53,46 @@ struct ContentView: View {
             UsersView(minJoinDate: showUpcomingOnly ? .now : .distantPast, sortOrder: sortOrder)
             .navigationTitle("Users")
             .toolbar {
-                Button("Add Samples", systemImage: "plus") {
-                    try? modelContext.delete(model: User.self)
-                    
-                    let first = User(name: "Ed Sheeran", city: "London", joinDate: .now.addingTimeInterval(86400 * -10))
-                    let second = User(name: "Rosa Diaz", city: "New York", joinDate: .now.addingTimeInterval(86400 * -5))
-                    let third = User(name: "Roy Kent", city: "London", joinDate: .now.addingTimeInterval(86400 * 5))
-                    let fourth = User(name: "Johnny English", city: "London", joinDate: .now.addingTimeInterval(86400 * 10))
-                    
-                    modelContext.insert(first)
-                    modelContext.insert(second)
-                    modelContext.insert(third)
-                    modelContext.insert(fourth)
+                ToolbarItem(placement: .topBarLeading) {
+                    EditButton()
                 }
                 
-                Button(showUpcomingOnly ? "Show Everyone" : "Show Upcoming") {
-                    showUpcomingOnly.toggle()
+                ToolbarItem {
+                    Button("Add Samples", systemImage: "plus") {
+                        try? modelContext.delete(model: User.self)
+                        
+                        let first = User(name: "Ed Sheeran", city: "London", joinDate: .now.addingTimeInterval(86400 * -10))
+                        let second = User(name: "Rosa Diaz", city: "New York", joinDate: .now.addingTimeInterval(86400 * -5))
+                        let third = User(name: "Roy Kent", city: "London", joinDate: .now.addingTimeInterval(86400 * 5))
+                        let fourth = User(name: "Johnny English", city: "London", joinDate: .now.addingTimeInterval(86400 * 10))
+                        
+                        modelContext.insert(first)
+                        modelContext.insert(second)
+                        modelContext.insert(third)
+                        modelContext.insert(fourth)
+                    }
                 }
                 
-                Menu("Sort", systemImage: "arrow.up.arrow.down") {
-                    Picker("Sort", selection: $sortOrder) {
-                        Text("Sort by Name")
-                            .tag([
-                                SortDescriptor(\User.name),
-                                SortDescriptor(\User.joinDate)
-                            ])
-                        Text("Sort by Join Date")
-                            .tag([
-                                SortDescriptor(\User.joinDate),
-                                SortDescriptor(\User.name)
-                            ])
+                ToolbarItem {
+                    Button(showUpcomingOnly ? "Show Everyone" : "Show Upcoming") {
+                        showUpcomingOnly.toggle()
+                    }
+                }
+                
+                ToolbarItem {
+                    Menu("Sort", systemImage: "arrow.up.arrow.down") {
+                        Picker("Sort", selection: $sortOrder) {
+                            Text("Sort by Name")
+                                .tag([
+                                    SortDescriptor(\User.name),
+                                    SortDescriptor(\User.joinDate)
+                                ])
+                            Text("Sort by Join Date")
+                                .tag([
+                                    SortDescriptor(\User.joinDate),
+                                    SortDescriptor(\User.name)
+                                ])
+                        }
                     }
                 }
             }
